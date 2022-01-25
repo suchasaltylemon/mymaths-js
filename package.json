@@ -1,0 +1,23 @@
+{
+  "name": "mymaths",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node out/src/index.js && exit 0"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/got": "^9.6.12",
+    "@types/jsdom": "^16.2.14",
+    "@types/node": "^17.0.10",
+    "@types/pako": "^1.0.3",
+    "@types/qs": "^6.9.7",
+    "axios": "^0.25.0",
+    "js-base64": "^3.7.2",
+    "jsdom": "^19.0.0",
+    "pako": "^2.0.4",
+    "qs": "^6.10.3"
+  }
+}
