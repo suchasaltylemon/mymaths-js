@@ -9,7 +9,7 @@ const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0";
 
 export class Session {
-  private csrf: string | undefined;
+  private _csrf: string | undefined;
   private readonly agent;
   private readonly jar;
 
@@ -23,6 +23,10 @@ export class Session {
 
       resolve(auth.value);
     });
+  }
+
+  public get csrf() {
+    return this._csrf;
   }
 
   constructor() {
@@ -59,10 +63,18 @@ export class Session {
 
         $(csrf);
 
-        this.csrf = csrf;
+        this._csrf = csrf;
       }
 
       resolve(parsed);
+    });
+  }
+
+  public async getRaw(url: string) {
+    return new Promise<unknown>(async (resolve, reject) => {
+      const res = await this.agent.get(url);
+
+      resolve(res.data);
     });
   }
 
@@ -70,7 +82,7 @@ export class Session {
     return new Promise<number>(async (resolve, reject) => {
       const payload = str({
         ...data,
-        ...{ authenticity_token: this.csrf, utf8: "✓" },
+        ...{ authenticity_token: this._csrf, utf8: "✓" },
       });
 
       const res = await this.agent.post(url, payload);

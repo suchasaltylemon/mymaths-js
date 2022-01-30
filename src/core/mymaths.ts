@@ -8,7 +8,7 @@ const enum Urls {
   STUDENT_AUTH = "https://app.mymaths.co.uk/myportal/student/authenticate",
   LIBRARY = "https://app.mymaths.co.uk/myportal/library/9",
   HOMEWORK = "https://app.mymaths.co.uk/myportal/student/my_homework",
-  SUBMIT_ANSWERS = "",
+  MARK = "https://app.mymaths.co.uk/api/legacy/save/mark",
 }
 
 export class MyMaths {
@@ -60,7 +60,7 @@ export class MyMaths {
   }
 
   public async solveHomework(hw: IHomework) {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<number>(async (resolve, reject) => {
       const page = await this.session.get(hw.url.toString());
 
       const src = page.window.document
@@ -69,18 +69,13 @@ export class MyMaths {
 
       $(src);
 
-      const player = await this.session.get(src, {}, false);
+      const submission = await createSubmission(src, this.session);
 
-      const auth = await this.session.auth;
+      const y = Urls.MARK;
 
-      const submission = createSubmission(
-        auth,
-        hw,
-        player.window.document,
-        src
-      );
+      const res = await this.session.post(Urls.MARK, submission);
 
-      console.log();
+      resolve(res);
     });
   }
 }

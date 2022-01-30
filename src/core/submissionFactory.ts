@@ -1,75 +1,102 @@
-import { IHomework } from "./homeworkFactory";
 import $ from "assert";
+import parser from "xml2js";
+import { Session } from "./session";
 
-interface IScore {
-  questionNumber: number;
+interface IQuestion {
+  name: string;
   score: number;
 }
 
 interface ISubmitData {
+  [qNumber: string]: number | string;
   taskID: string;
   realID: string;
-  scores: IScore[];
   studentID: string;
   sCode: number;
   authToken: string; // _ra_token
 }
 
-const genSCode = (authCode: string, taskId: string, q1: string, q2: string) => {
+const genSCode = (authCode: string, taskId: string, q1: number, q2: number) => {
   const intAuthCode = Number(authCode);
   const intTaskId = Number(taskId);
 
   let sCode = intAuthCode * intTaskId;
 
-  sCode += Number(q1) * 100 + Number(q2);
+  sCode += q1 * 100 + q2;
   sCode *= 10000;
   sCode += intTaskId * intTaskId;
 
   return sCode;
 };
 
-const getTaskId = (src: string) => {
-  const params = new URLSearchParams(src);
+const fromUrl = (url: string, key: string) => {
+  const params = new URLSearchParams(url);
 
-  const taskid = params.get("taskID");
+  const value = params.get(key);
 
-  $(taskid);
+  $(value);
 
-  return taskid;
+  return value;
 };
 
-const getQuestions = (player: Document) => {
-  const questions = player.querySelectorAll("nav > id");
+const getQuestions = async (agent: Session, url: string) => {
+  return new Promise<IQuestion[]>(async (resolve, reject) => {
+    const page = await agent.getRaw(url);
 
-  console.log();
+    $(typeof page === "string");
+
+    parser.parseString(page, (error, res) => {
+      $(!error);
+      $(typeof res === "object");
+
+      const homeworkRegion = res.homework;
+      $(typeof homeworkRegion === "object");
+
+      const xmlQuestions = homeworkRegion.homeworkQuestion;
+      $(Array.isArray(xmlQuestions));
+
+      console.log();
+
+      const questions = xmlQuestions.map((q): IQuestion => {
+        const name = q.$.questiontitle;
+        $(typeof name === "string");
+
+        const marks = q.$.questionmarks;
+        $(typeof marks === "string");
+
+        return {
+          name: name,
+          score: Number(marks),
+        };
+      });
+
+      resolve(questions);
+    });
+  });
 };
 
-export const createSubmission = (
-  authToken: string,
-  hw: IHomework,
-  player: Document,
-  src: string
-) => {
-  const taskId = getTaskId(src);
-  const realId = hw.url.pathname.replace("/", "").split("-homework")[0];
-  const questions = getQuestions(player);
+export const createSubmission = async (src: string, agent: Session) => {
+  const taskId = fromUrl(src, "taskID");
+  const realId = fromUrl(src, "realID");
+  const studentId = fromUrl(src, "studentID");
+  const authCode = fromUrl(src, "authCode");
+
+  const xmlPath =
+    fromUrl(src, "assetHost") + fromUrl(src, "contentPath") + "content.xml";
+
+  const questions = await getQuestions(agent, xmlPath);
 
   const submit: ISubmitData = {
-    authToken: authToken,
+    authToken: agent.csrf as string,
     realID: realId,
-    sCode: genSCode(authToken, taskId, "", ""),
-    studentID: "", // Get student id,
     taskID: taskId,
-    scores: [],
+    sCode: genSCode(authCode, taskId, questions[0].score, questions[1].score),
+    studentID: studentId,
   };
+
+  questions.forEach((v, i) => {
+    submit[`q${i + 1}score`] = v.score;
+  });
 
   return submit;
 };
-
-export const tsCode = () => {
-  const sCode = genSCode("1759140", "1960", "6", "13");
-
-  console.log();
-};
-
-//TODO: Find where auth token is, fix the JSDOM parser
