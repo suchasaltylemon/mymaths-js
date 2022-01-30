@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node out/src/index.js && exit 0"
+    "test": "ts-node src/index.ts && exit 0"
   },
   "author": "",
   "license": "ISC",
@@ -15,9 +15,11 @@
     "@types/pako": "^1.0.3",
     "@types/qs": "^6.9.7",
     "axios": "^0.25.0",
+    "axios-cookiejar-support": "^2.0.3",
     "js-base64": "^3.7.2",
     "jsdom": "^19.0.0",
     "pako": "^2.0.4",
-    "qs": "^6.10.3"
+    "qs": "^6.10.3",
+    "tough-cookie": "^4.0.0"
   }
 }
