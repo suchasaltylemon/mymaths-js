@@ -2,6 +2,7 @@ import { Session } from "./session";
 import $ from "assert";
 import { createHomework, IHomework } from "./homeworkFactory";
 import { createSubmission } from "./submissionFactory";
+import { URL } from "url";
 
 const enum Urls {
   LOGIN = "https://login.mymaths.co.uk/login",
@@ -59,6 +60,15 @@ export class MyMaths {
     });
   }
 
+  public async solveHomeworkFromUrl(url: string) {
+    const pseudoHomework: IHomework = {
+      name: "Foo",
+      url: new URL(url),
+    };
+
+    return this.solveHomework(pseudoHomework);
+  }
+
   public async solveHomework(hw: IHomework) {
     return new Promise<number>(async (resolve, reject) => {
       const page = await this.session.get(hw.url.toString());
@@ -71,11 +81,10 @@ export class MyMaths {
 
       const submission = await createSubmission(src, this.session);
 
-      const y = Urls.MARK;
-
-      const res = await this.session.post(Urls.MARK, submission);
-
-      resolve(res);
+      try {
+        const res = await this.session.post(Urls.MARK, submission);
+        resolve(res);
+      } catch {}
     });
   }
 }

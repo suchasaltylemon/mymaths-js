@@ -13,7 +13,7 @@ interface ISubmitData {
   realID: string;
   studentID: string;
   sCode: number;
-  authToken: string; // _ra_token
+  authToken: string;
 }
 
 const genSCode = (authCode: string, taskId: string, q1: number, q2: number) => {

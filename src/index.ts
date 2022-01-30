@@ -8,15 +8,10 @@ import { MyMaths } from "./core/mymaths";
 
 const mymaths = new MyMaths();
 
-const test = new Map();
-test.set("asda", "cheese");
+const url = "https://app.mymaths.co.uk/362-homework/cumulative-frequency-1";
 
 mymaths
   .login(schoolUsername, schoolPassword, studentUsername, studentPassword)
-  .then(() => {
-    mymaths.getHomework().then((homework) => {
-      homework.forEach((hw) => {
-        mymaths.solveHomework(hw);
-      });
-    });
+  .then(async () => {
+    await mymaths.solveHomeworkFromUrl(url);
   });

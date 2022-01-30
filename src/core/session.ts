@@ -2,7 +2,7 @@ import axios from "axios";
 import { JSDOM } from "jsdom";
 import { stringify as str } from "qs";
 import $ from "assert";
-import { Cookie, CookieJar } from "tough-cookie";
+import { CookieJar } from "tough-cookie";
 import { wrapper } from "axios-cookiejar-support";
 
 const USER_AGENT =
