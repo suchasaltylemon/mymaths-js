@@ -80,14 +80,16 @@ export class Session {
 
   public async post(url: string, data: object) {
     return new Promise<number>(async (resolve, reject) => {
-      const payload = str({
-        ...data,
-        ...{ authenticity_token: this._csrf, utf8: "✓" },
-      });
+      try {
+        const payload = str({
+          ...data,
+          ...{ authenticity_token: this._csrf, utf8: "✓" },
+        });
 
-      const res = await this.agent.post(url, payload);
+        const res = await this.agent.post(url, payload);
 
-      resolve(res.status);
+        resolve(res.status);
+      } catch {}
     });
   }
 }

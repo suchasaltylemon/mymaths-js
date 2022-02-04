@@ -1,6 +1,7 @@
 import { MyMaths } from "./core/mymaths";
 import inquirer from "inquirer";
 import $ from "assert";
+import fs from "fs/promises";
 
 const solveFromUrl = async (mymaths: MyMaths) => {
   const ans = await inquirer.prompt({
@@ -23,9 +24,32 @@ const doAllHomework = (mymaths: MyMaths) => {
   });
 };
 
-const main = () => {
-  inquirer
-    .prompt([
+const getAuth = async () => {
+  let schoolUsername: string, schoolPassword: string;
+  let studentUsername: string, studentPassword: string;
+
+  const res = await inquirer.prompt({
+    message: "Load from auth.json?",
+    type: "confirm",
+    name: "json",
+  });
+
+  const loadFromJson = res.json;
+  $(typeof loadFromJson === "boolean");
+
+  if (loadFromJson) {
+    const stream = await fs.readFile("./auth.json");
+    const str = stream.toString();
+    const decoded = JSON.parse(str);
+
+    $(typeof decoded === "object");
+
+    schoolUsername = decoded.schoolUsername;
+    schoolPassword = decoded.schoolPassword;
+    studentUsername = decoded.studentUsername;
+    studentPassword = decoded.studentPassword;
+  } else {
+    const answers = await inquirer.prompt([
       {
         message: "School Username",
         type: "input",
@@ -46,47 +70,63 @@ const main = () => {
         type: "password",
         name: "studentPassword",
       },
-    ])
-    .then((answers) => {
-      const schoolUsername = answers.schoolUsername;
-      $(typeof schoolUsername === "string");
+    ]);
 
-      const schoolPassword = answers.schoolPassword;
-      $(typeof schoolPassword === "string");
+    schoolUsername = answers.schoolUsername;
+    schoolPassword = answers.schoolPassword;
+    studentUsername = answers.studentUsername;
+    studentPassword = answers.studentPassword;
+  }
 
-      const studentUsername = answers.studentUsername;
-      $(typeof studentUsername === "string");
+  $(typeof schoolUsername === "string");
 
-      const studentPassword = answers.studentPassword;
-      $(typeof studentPassword === "string");
+  $(typeof schoolPassword === "string");
 
-      const mymaths = new MyMaths();
+  $(typeof studentUsername === "string");
 
-      mymaths
-        .login(schoolUsername, schoolPassword, studentUsername, studentPassword)
-        .then(() => {
-          inquirer
-            .prompt({
-              message: "What would you like to solve?",
-              type: "list",
-              name: "choice",
-              choices: [
-                {
-                  name: "Solve all homework",
-                  value: "all",
-                },
-                {
-                  name: "Solve from URL",
-                  value: "url",
-                },
-              ],
-            })
-            .then((answers) => {
-              const choice = answers.choice;
-              $(typeof choice === "string");
+  $(typeof studentPassword === "string");
 
-              choice === "all" ? doAllHomework(mymaths) : solveFromUrl(mymaths);
-            });
+  return {
+    schoolUsername,
+    schoolPassword,
+    studentUsername,
+    studentPassword,
+  };
+};
+
+const main = async () => {
+  const mymaths = new MyMaths();
+
+  const auth = await getAuth();
+  $(auth);
+
+  const { schoolUsername, schoolPassword, studentPassword, studentUsername } =
+    auth;
+
+  mymaths
+    .login(schoolUsername, schoolPassword, studentUsername, studentPassword)
+    .then(() => {
+      inquirer
+        .prompt({
+          message: "What would you like to solve?",
+          type: "list",
+          name: "choice",
+          choices: [
+            {
+              name: "Solve all homework",
+              value: "all",
+            },
+            {
+              name: "Solve from URL",
+              value: "url",
+            },
+          ],
+        })
+        .then((answers) => {
+          const choice = answers.choice;
+          $(typeof choice === "string");
+
+          choice === "all" ? doAllHomework(mymaths) : solveFromUrl(mymaths);
         });
     });
 };
